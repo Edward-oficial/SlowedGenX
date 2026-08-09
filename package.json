@@ -13,7 +13,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "baileysx": "github:Edward-oficial/BaileysX",
+    "baileysxz": "github:Edward-oficial/BaileysXZ",
     "sharp": "^0.33.5",
     "axios": "^1.7.9",
     "@hapi/boom": "^10.0.1",
