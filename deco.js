@@ -1,11 +1,10 @@
 import { config } from "./config.js";
-
 export const BOT_NAME = config.botName;
 export const BOT_CREATOR = config.creator;
 export const REPO_URL = config.repo || "";
 export const GROUP_URL = config.canal || "";
 
-const WIDTH = 46;
+const WIDTH = 25;
 
 const SEPARATORS = {
   normal: "═".repeat(WIDTH),
@@ -69,6 +68,12 @@ export function item(text = "") {
   return `▸ ${text}`;
 }
 
+export function clip(text = "", max = 40) {
+  const t = String(text || "").trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, max).trimEnd()}…`;
+}
+
 export function badge(icon, label, value = "") {
   return value
     ? `▸ ${icon} *${label}:* ${value}`
@@ -103,6 +108,6 @@ export function formatUptime(seconds = 0) {
 
 export default {
   BOT_NAME, BOT_CREATOR, REPO_URL, GROUP_URL,
-  item, badge, sep, boldText, themeText, box, formatUptime,
+  item, badge, sep, boldText, themeText, box, formatUptime, clip,
   getCategoryLabel, getCategoryIcon, getIcon, getStatus,
 };
