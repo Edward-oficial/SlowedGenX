@@ -139,7 +139,7 @@ export default {
           {
             text:
               `📥 *${bold("Procesando descarga, espera un momento...")}*\n` +
-              `🎵 *SlowedGenX - By Edward & Brayan RK*`,
+              `🎵 *SlowedGenX*`,
             contextInfo: {
               externalAdReply: {
                 title: titulo,
