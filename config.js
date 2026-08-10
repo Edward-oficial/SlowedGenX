@@ -9,7 +9,8 @@ export const config = {
   canal: null,
 
   welcome: {
-    mensajeBienvenida: "Llegaste, {mencion}. Bienvenida/o a {grupo}. Ya somos {cantidad}.",
-    mensajeDespedida: "{mencion} se fue de {grupo}. Ya somos {cantidad}.",
+    mensajeBienvenida: "Llegaste, *${mention}* Bienvenida/o a {grupo}. Ya somos {cantidad}.",
+    mensajeDespedida: "{*${mention}* se fue de {grupo}. Ya somos {cantidad}.",
   },
 };
+
