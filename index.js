@@ -6,8 +6,7 @@ import { config } from "./config.js";
 import { loadPlugins, agruparPorCategoria } from "./pluginLoader.js";
 import { crearBot } from "./core.js";
 import { reconectarSubBots, listarSubBots } from "./subbots.js";
-import { obtenerConfigGrupo } from "./groupSettings.js";
-import { formatoUsuario, aplicarPlantilla } from "./groupHelpers.js";
+import { onGroupParticipantsUpdate } from "./welcome.js";
 
 process.on("uncaughtException", (err) => {
   console.log(chalk.red("[ERROR] Excepción no capturada:"), err);
@@ -137,36 +136,6 @@ async function iniciar() {
           console.error(`[PLUGIN_ERROR] ${plugin.fileName}:`, err.message, err.stack);
         }
         break;
-      }
-    }
-  };
-
-  const onGroupParticipantsUpdate = async (sock, update, metadata) => {
-    if (!metadata) return;
-    const { id: chatId, participants, action } = update;
-    const configGrupo = obtenerConfigGrupo(chatId);
-
-    if (action === "add" && configGrupo.welcome) {
-      for (const participante of participants) {
-        const formato = await formatoUsuario(sock, chatId, participante);
-        const texto = aplicarPlantilla(config.welcome.mensajeBienvenida, {
-          mencion: formato.texto,
-          grupo: metadata.subject,
-          cantidad: metadata.participants.length,
-        });
-        await sock.sendMessage(chatId, { text: texto, mentions: formato.mentions });
-      }
-    }
-
-    if (action === "remove" && configGrupo.bye) {
-      for (const participante of participants) {
-        const formato = await formatoUsuario(sock, chatId, participante);
-        const texto = aplicarPlantilla(config.welcome.mensajeDespedida, {
-          mencion: formato.texto,
-          grupo: metadata.subject,
-          cantidad: metadata.participants.length,
-        });
-        await sock.sendMessage(chatId, { text: texto, mentions: formato.mentions });
       }
     }
   };
