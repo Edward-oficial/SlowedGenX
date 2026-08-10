@@ -10,7 +10,7 @@ export const config = {
 
   welcome: {
     mensajeBienvenida: "Hola, *${mention}* Bienvenida/o a {grupo}. Ya somos {cantidad}.",
-    mensajeDespedida: "{*${mention}* se fue de {grupo}. Ya somos {cantidad}.",
+    mensajeDespedida: " {*${mention}* se fue de {grupo}. Ya somos {cantidad}.",
   },
 };
 
