@@ -5,13 +5,13 @@ const CDN_URL = "https://duancdn.hidenfree.com/upload";
 export default {
   command: ["subir", "cdn"],
   category: "tools",
-  description: "Sube una foto o video a Duan CDN y devuelve el link",
+  description: "Sube una foto, video o audio a Duan CDN y devuelve el link",
   run: async (sock, msg, args, context) => {
     const { chatId, sender } = context;
 
-    const directa = msg.message?.imageMessage || msg.message?.videoMessage;
+    const directa = msg.message?.imageMessage || msg.message?.videoMessage || msg.message?.audioMessage;
     const info = msg.message?.extendedTextMessage?.contextInfo;
-    const citada = info?.quotedMessage?.imageMessage || info?.quotedMessage?.videoMessage;
+    const citada = info?.quotedMessage?.imageMessage || info?.quotedMessage?.videoMessage || info?.quotedMessage?.audioMessage;
 
     let mensajeParaDescargar = null;
     let mimetype = "image/jpeg";
@@ -29,18 +29,28 @@ export default {
 
     if (!mensajeParaDescargar) {
       await sock.sendMessage(chatId, {
-        text: "Mandá una foto o video con el texto *subir* como descripción, o citá una foto/video ya enviado y escribí *subir*.",
+        text: "Mandá una foto, video o audio con el texto *subir* como descripción, o citá un archivo ya enviado y escribí *subir*.",
       }, { quoted: msg });
       return;
     }
 
     try {
-      const tipoMedia = mimetype.startsWith("video") ? "video" : "foto";
+      let tipoMedia = "archivo";
+      if (mimetype.startsWith("video")) tipoMedia = "video";
+      else if (mimetype.startsWith("audio")) tipoMedia = "audio";
+      else if (mimetype.startsWith("image")) tipoMedia = "foto";
+      
       await sock.sendMessage(chatId, { text: `Subiendo ${tipoMedia}...` }, { quoted: msg });
 
       const buffer = await downloadMediaMessage(mensajeParaDescargar, "buffer", {});
 
-      const ext = mimetype.split("/")[1] || (mimetype.startsWith("video") ? "mp4" : "jpg");
+      let ext = mimetype.split("/")[1];
+      if (!ext) {
+        if (mimetype.startsWith("video")) ext = "mp4";
+        else if (mimetype.startsWith("audio")) ext = "ogg";
+        else ext = "jpg";
+      }
+      
       const blob = new Blob([buffer], { type: mimetype });
 
       const formData = new FormData();
