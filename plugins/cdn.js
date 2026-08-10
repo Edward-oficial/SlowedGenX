@@ -4,7 +4,7 @@ import { join } from "path";
 
 export default {
   command: ["subir", "cdn", "host"],
-  category: "Multimedia",
+  category: "general",
   description: "Sube una imagen al CDN",
   run: async (sock, msg, args, context) => {
     const { chatId } = context;
