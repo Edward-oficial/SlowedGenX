@@ -1,8 +1,6 @@
 import { execSync } from "child_process";
 import { config } from "../config.js";
 
-// Extrae solo los dígitos, sin importar si el sender viene como
-// "1234@s.whatsapp.net", "1234@lid" o el número pelado.
 const soloNumero = (valor) => String(valor || "").replace(/\D/g, "");
 
 const esOwner = (sender) => {
@@ -14,14 +12,12 @@ const esOwner = (sender) => {
 export default {
   command: ["update", "actualizar", "gitpull"],
   category: "owner",
-  description: "Actualiza el bot desde GitHub sin reiniciar",
+  description: "Actualiza el bot desde GitHub y reinicia con PM2",
   run: async (sock, msg, args, context) => {
-    const { chatId, sender, recargarComandos } = context;
+    const { chatId, sender } = context;
 
     if (!esOwner(sender)) {
-      await sock.sendMessage(chatId, {
-        text: "No tenés permiso para usar este comando.",
-      }, { quoted: msg });
+      await sock.sendMessage(chatId, { text: "No tenés permiso para usar este comando." }, { quoted: msg });
       return;
     }
 
@@ -32,9 +28,7 @@ export default {
       const pull = execSync("git pull").toString();
 
       if (pull.includes("Already up to date")) {
-        await sock.sendMessage(chatId, {
-          text: "Ya está actualizado.",
-        }, { quoted: msg });
+        await sock.sendMessage(chatId, { text: "Ya está actualizado." }, { quoted: msg });
         return;
       }
 
@@ -42,25 +36,19 @@ export default {
       const cambios = execSync(`git diff --name-only ${antes} ${despues}`)
         .toString().trim().split("\n").filter(Boolean);
 
-      let recargoOk = false;
-      if (typeof recargarComandos === "function") {
-        await recargarComandos();
-        recargoOk = true;
-      }
+      await sock.sendMessage(chatId, {
+        text: `✅ Actualizado correctamente.\n` +
+              `${antes.slice(0, 7)} → ${despues.slice(0, 7)}\n` +
+              `${cambios.length} archivos cambiados.\n\n` +
+              `🔄 Reiniciando aplicación con PM2...`
+      }, { quoted: msg });
 
-      await sock.sendMessage(chatId, {
-        text:
-          `Actualizado\n` +
-          `${antes.slice(0, 7)} → ${despues.slice(0, 7)}\n` +
-          `${cambios.length} archivos\n` +
-          (recargoOk
-            ? "Comandos recargados."
-            : "⚠️ No se pudo recargar comandos en caliente, reiniciá el bot manualmente."),
-      }, { quoted: msg });
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      execSync("pm2 restart 0");
+
     } catch (err) {
-      await sock.sendMessage(chatId, {
-        text: "Error:\n" + err.message,
-      }, { quoted: msg });
+      await sock.sendMessage(chatId, { text: "⚠️ Error durante la actualización:\n" + err.message }, { quoted: msg });
     }
   },
 };
