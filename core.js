@@ -107,8 +107,7 @@ export async function crearBot({
       groupMetadataCache.set(chatId, metadata);
       return metadata;
     } catch (err) {
-      console.log(chalk.red(`[${etiqueta}] Error obteniendo metadata de grupo ${chatId}:`), err.message);
-      return groupMetadataCache.get(chatId) || null;
+      return null;
     }
   }
   sock.groupMetadataCache = groupMetadataCache;
