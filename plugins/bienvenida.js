@@ -1,43 +1,33 @@
-import { obtenerConfigGrupo, actualizarConfigGrupo } from "../groupSettings.js";
-import { esAdminDeGrupo } from "../groupHelpers.js";
+import { obtenerConfigGrupo } from "./groupSettings.js";
+import { formatoUsuario, aplicarPlantilla } from "./groupHelpers.js";
+import { config } from "./config.js";
 
-export default {
-  command: ["bienvenida", "welcome", "despedida", "bye"],
-  category: "group",
-  description: "Activa o desactiva los mensajes de bienvenida y despedida",
-  run: async (sock, msg, args, context) => {
-    const { chatId, sender, esGrupo, body } = context;
+export async function onGroupParticipantsUpdate(sock, update, metadata) {
+  if (!metadata) return;
+  const { id: chatId, participants, action } = update;
+  const configGrupo = obtenerConfigGrupo(chatId);
 
-    if (!esGrupo) {
-      await sock.sendMessage(chatId, { text: "Este comando es solo para grupos." }, { quoted: msg });
-      return;
+  if (action === "add" && configGrupo.welcome) {
+    for (const participante of participants) {
+      const formato = await formatoUsuario(sock, chatId, participante);
+      const texto = aplicarPlantilla(config.welcome.mensajeBienvenida, {
+        mention: formato.texto,
+        grupo: metadata.subject,
+        cantidad: metadata.participants.length,
+      });
+      await sock.sendMessage(chatId, { text: texto, mentions: formato.mentions });
     }
+  }
 
-    const esAdmin = await esAdminDeGrupo(sock, chatId, sender);
-    if (!esAdmin) {
-      await sock.sendMessage(chatId, { text: "Solo un admin del grupo puede cambiar esto." }, { quoted: msg });
-      return;
+  if (action === "remove" && configGrupo.bye) {
+    for (const participante of participants) {
+      const formato = await formatoUsuario(sock, chatId, participante);
+      const texto = aplicarPlantilla(config.welcome.mensajeDespedida, {
+        mention: formato.texto,
+        grupo: metadata.subject,
+        cantidad: metadata.participants.length,
+      });
+      await sock.sendMessage(chatId, { text: texto, mentions: formato.mentions });
     }
-
-    const primeraPalabra = body.trim().split(/\s+/)[0].toLowerCase();
-    const esBienvenida = primeraPalabra === "bienvenida" || primeraPalabra === "welcome";
-    const clave = esBienvenida ? "welcome" : "bye";
-    const nombre = esBienvenida ? "bienvenida" : "despedida";
-
-    const estado = (args[0] || "").toLowerCase();
-
-    if (estado !== "on" && estado !== "off") {
-      const actual = obtenerConfigGrupo(chatId)[clave];
-      await sock.sendMessage(chatId, {
-        text: `La ${nombre} esta ${actual ? "activada" : "desactivada"}.\nUso: *${primeraPalabra} on* o *${primeraPalabra} off*`,
-      }, { quoted: msg });
-      return;
-    }
-
-    actualizarConfigGrupo(chatId, { [clave]: estado === "on" });
-
-    await sock.sendMessage(chatId, {
-      text: `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${estado === "on" ? "activada" : "desactivada"}.`,
-    }, { quoted: msg });
-  },
-};
+  }
+}
