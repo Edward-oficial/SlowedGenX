@@ -8,20 +8,15 @@ try {
 
 import { config } from "../config.js";
 import {
-  item,
-  badge,
-  sep,
-  boldText,
-  box,
-  formatUptime,
   clip,
   BOT_NAME,
-  BOT_CREATOR,
-  REPO_URL,
   GROUP_URL,
   getCategoryLabel,
   getCategoryIcon,
-  getIcon,
+  renderHeader,
+  renderSection,
+  renderCommand,
+  renderFooter,
 } from "../deco.js";
 
 function clean(value = "") {
@@ -90,47 +85,46 @@ function sortedCategoryNames(categories) {
   });
 }
 
-function buildSignature(botName) {
-  const heart = getIcon("heart");
-  return `${heart} ${boldText(botName)} ${heart}`;
-}
-
-function buildFullMenu(categories, totalCommands, botDisplayName, senderNum) {
+function buildFullMenu(categories, totalCommands, botDisplayName, senderName) {
   const names = sortedCategoryNames(categories);
 
-  const headerLines = [
-    item(`${getIcon("wave")} Hola${senderNum ? ` @${senderNum}` : ""}, soy ${boldText(botDisplayName)}`),
-    sep("light"),
-    badge(getIcon("owner"), "Creador", BOT_CREATOR),
-    badge(getIcon("clock"), "Tiempo activo", formatUptime(process.uptime())),
-    badge(getIcon("commands"), "Comandos totales", String(totalCommands)),
-    badge(getIcon("system"), "Categorías", String(names.length)),
-  ];
-  if (REPO_URL) headerLines.push(badge(getIcon("tools"), "Repositorio", REPO_URL));
-  if (GROUP_URL) headerLines.push(badge(getIcon("group"), "Canal", GROUP_URL));
+  const channelLine = GROUP_URL ? `> *✦* Canal › *${GROUP_URL}*\n` : "";
 
-  const sections = [box(botDisplayName.toUpperCase(), headerLines)];
+  let texto = renderHeader({
+    user: senderName || "usuario",
+    bot: botDisplayName,
+    version: config.version || "1.0.0",
+    total: String(totalCommands),
+    categories: String(names.length),
+    channelLine,
+  });
 
   for (const catKey of names) {
     const cmds = categories[catKey].sort((a, b) => a.main.localeCompare(b.main));
     const catLabel = getCategoryLabel(catKey);
     const catIcon = getCategoryIcon(catKey);
 
-    const rows = [];
-    cmds.forEach((cmd, idx) => {
-      const alias = cmd.aliases[0] ? `  •  ${clip(cmd.aliases[0], 12)}` : "";
-      const desc = cmd.description ? ` — ${clip(cmd.description, 34)}` : "";
+    let commandsBlock = "";
+    for (const cmd of cmds) {
       const ownerTag = cmd.isOwner ? " (owner)" : "";
-      const slot = String(idx + 1).padStart(2, "0");
-      rows.push(item(`${getIcon("commands")} ${slot}. ${cmd.main}${ownerTag}${desc}${alias}`));
-    });
+      commandsBlock += renderCommand({
+        command: `${cmd.main}${ownerTag}`,
+        description: cmd.description ? clip(cmd.description, 40) : "Sin descripción",
+      });
+    }
 
-    sections.push(box(`${catIcon} ${catLabel}`, rows));
+    texto += renderSection({
+      icon: catIcon,
+      title: catLabel,
+      commands: commandsBlock,
+    });
   }
 
-  sections.push(buildSignature(botDisplayName));
-  return sections.join("\n\n");
+  texto += renderFooter({ footer: `${botDisplayName} ✦` });
+
+  return texto;
 }
+
 let cachedImageBuffer = null;
 let cachedImageKey = "";
 
@@ -139,7 +133,6 @@ function getImageCandidates() {
     path.join(process.cwd(), "imagenes", "menu.mp4"),
     path.join(process.cwd(), "imagenes", "menu.png"),
     path.join(process.cwd(), "imagenes", "menu.jpg"),
-    path.join(process.cwd(), "imagenes", "menu.jpeg"),
   ];
 }
 
@@ -201,13 +194,12 @@ export default {
 
     try {
       const botDisplayName = config.botName || BOT_NAME;
-      const sender = msg.key?.participant || msg.key?.remoteJid || chatId;
-      const senderNum = normalizeNumber(sender);
+      const senderName = msg.pushName || "usuario";
 
       const commands = collectCommands(allPlugins || []);
       const categories = groupByCategory(commands);
 
-      const texto = buildFullMenu(categories, commands.length, botDisplayName, senderNum);
+      const texto = buildFullMenu(categories, commands.length, botDisplayName, senderName);
       const media = await getMenuImageBuffer();
 
       await sendMenuMedia(sock, chatId, msg, texto, media);
