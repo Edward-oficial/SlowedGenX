@@ -14,6 +14,7 @@ import {
   boldText,
   box,
   formatUptime,
+  clip,
   BOT_NAME,
   BOT_CREATOR,
   REPO_URL,
@@ -117,11 +118,11 @@ function buildFullMenu(categories, totalCommands, botDisplayName, senderNum) {
 
     const rows = [];
     cmds.forEach((cmd, idx) => {
-      const aliases = cmd.aliases.length ? `  •  ${cmd.aliases.slice(0, 2).join(", ")}` : "";
-      const desc = cmd.description ? ` — ${cmd.description}` : "";
+      const alias = cmd.aliases[0] ? `  •  ${clip(cmd.aliases[0], 12)}` : "";
+      const desc = cmd.description ? ` — ${clip(cmd.description, 34)}` : "";
       const ownerTag = cmd.isOwner ? " (owner)" : "";
       const slot = String(idx + 1).padStart(2, "0");
-      rows.push(item(`${getIcon("commands")} ${slot}. ${cmd.main}${ownerTag}${desc}${aliases}`));
+      rows.push(item(`${getIcon("commands")} ${slot}. ${cmd.main}${ownerTag}${desc}${alias}`));
     });
 
     sections.push(box(`${catIcon} ${catLabel}`, rows));
