@@ -127,6 +127,14 @@ export default {
 
       // Tarjeta con miniatura grande (externalAdReply)
       if (info.thumbnail) {
+        let thumbnailBuffer = null;
+        try {
+          const thumbRes = await fetch(info.thumbnail);
+          thumbnailBuffer = Buffer.from(await thumbRes.arrayBuffer());
+        } catch (_) {
+          thumbnailBuffer = null; // si falla, la tarjeta sale sin imagen pero no rompe el flujo
+        }
+
         await sock.sendMessage(
           chatId,
           {
@@ -139,6 +147,7 @@ export default {
               externalAdReply: {
                 title: titulo,
                 body: precio,
+                thumbnail: thumbnailBuffer,
                 thumbnailUrl: info.thumbnail,
                 sourceUrl: primerVideo.url,
                 mediaType: 1,
