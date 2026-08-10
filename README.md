@@ -1,4 +1,4 @@
-# Duan Botgen
+# Duan BotgenX
 
 Generador de bots de WhatsApp con IA. Parte de una base real (Baby Ania) y usa Groq para crear los comandos que pida cada persona, de forma conversacional: pedís, revisás el código generado, corregís lo que quieras, y recién al final descargás el zip.
 
