@@ -51,8 +51,8 @@ function normalizeCategory(value = "") {
 }
 
 const CATEGORY_ORDER = [
-  "general", "descargas", "herramientas",
-  "juegos", "grupos", "sistema", "owner", "otros",
+  "general", "descargas", "herramientas", "entretenimiento",
+  "juegos", "grupos", "sistema", "hackingEtico", "ia", "nsfw", "owner", "otros",
 ];
 
 function collectCommands(plugins = []) {
@@ -94,7 +94,6 @@ function buildSignature(botName) {
   return `${heart} ${boldText(botName)} — ${boldText(BOT_CREATOR)} ${heart}`;
 }
 
-// ── Armado del menú completo (todas las categorías juntas) ─────────────
 function buildFullMenu(categories, totalCommands, botDisplayName, senderNum) {
   const names = sortedCategoryNames(categories);
 
@@ -131,7 +130,6 @@ function buildFullMenu(categories, totalCommands, botDisplayName, senderNum) {
   sections.push(buildSignature(botDisplayName));
   return sections.join("\n\n");
 }
-
 let cachedImageBuffer = null;
 let cachedImageKey = "";
 
