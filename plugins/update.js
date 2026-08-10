@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 
 export default {
   command: ["update", "actualizar", "gitpull"],
-  category: "Sistema",
+  category: "sistema",
   description: "Actualiza el bot desde GitHub sin reiniciar",
   run: async (sock, msg, args, context) => {
     const { chatId, sender, recargarComandos } = context;
