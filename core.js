@@ -3,7 +3,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   DisconnectReason,
   Browsers,
-} from "baileysxz";
+} from "baileysx";
 import { Boom } from "@hapi/boom";
 import pino from "pino";
 import chalk from "chalk";
@@ -107,7 +107,8 @@ export async function crearBot({
       groupMetadataCache.set(chatId, metadata);
       return metadata;
     } catch (err) {
-      return null;
+      console.log(chalk.red(`[${etiqueta}] Error obteniendo metadata de grupo ${chatId}:`), err.message);
+      return groupMetadataCache.get(chatId) || null;
     }
   }
   sock.groupMetadataCache = groupMetadataCache;
