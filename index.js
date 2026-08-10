@@ -88,11 +88,42 @@ async function iniciar() {
 
   rl.close();
 
+  const pendingReplies = new Map();
+
+  function esperarRespuesta(chatId, sender, handler, timeoutMs = 5 * 60 * 1000) {
+    const key = `${chatId}:${sender}`;
+    pendingReplies.set(key, handler);
+    setTimeout(() => {
+      if (pendingReplies.get(key) === handler) pendingReplies.delete(key);
+    }, timeoutMs);
+  }
+
   const onMessage = async (sock, msg, context) => {
-    const { body, chatId } = context;
+    const { body, chatId, sender } = context;
     if (!body) return;
 
     const texto = body.trim();
+    const pendingKey = `${chatId}:${sender}`;
+    const pending = pendingReplies.get(pendingKey);
+
+    const baseContext = {
+      ...context,
+      allPlugins: plugins,
+      onMessage,
+      onGroupParticipantsUpdate,
+      esperarRespuesta: (handler, timeoutMs) => esperarRespuesta(chatId, sender, handler, timeoutMs),
+    };
+
+    if (pending) {
+      pendingReplies.delete(pendingKey);
+      try {
+        await pending(sock, msg, baseContext);
+      } catch (err) {
+        console.log(chalk.red("Error en respuesta pendiente:"), err);
+      }
+      return;
+    }
+
     const primeraPalabra = texto.split(/\s+/)[0].toLowerCase();
     const args = texto.split(/\s+/).slice(1);
 
@@ -100,12 +131,7 @@ async function iniciar() {
       if (plugin.command.includes(primeraPalabra)) {
         console.log(`[PLUGIN_MATCH] Ejecutando comando "${primeraPalabra}" con archivo ${plugin.fileName}, args: ${JSON.stringify(args)}`);
         try {
-          await plugin.run(sock, msg, args, {
-            ...context,
-            allPlugins: plugins,
-            onMessage,
-            onGroupParticipantsUpdate,
-          });
+          await plugin.run(sock, msg, args, baseContext);
         } catch (err) {
           console.log(chalk.red(`Error ejecutando el plugin ${plugin.fileName}:`), err);
           console.error(`[PLUGIN_ERROR] ${plugin.fileName}:`, err.message, err.stack);
