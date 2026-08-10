@@ -1,60 +1,62 @@
 import { downloadMediaMessage } from "../media.js";
 
-const CDN_URL = "https://duancdn.hidenfree.com/upload";
+const CDN_URL = "https://duancdn.onrender.com/upload";
+
+function detectarMedia(msg) {
+  const directo = msg.message?.imageMessage || msg.message?.videoMessage || msg.message?.audioMessage;
+  if (directo) {
+    const tipo = msg.message.imageMessage ? "image" : msg.message.videoMessage ? "video" : "audio";
+    return { mensajeParaDescargar: msg, mimetype: directo.mimetype, tipo };
+  }
+
+  const info = msg.message?.extendedTextMessage?.contextInfo;
+  const citado = info?.quotedMessage;
+  const citada = citado?.imageMessage || citado?.videoMessage || citado?.audioMessage;
+
+  if (citada) {
+    const tipo = citado.imageMessage ? "image" : citado.videoMessage ? "video" : "audio";
+    return {
+      mensajeParaDescargar: {
+        message: citado,
+        key: { remoteJid: null, id: info.stanzaId, participant: info.participant },
+      },
+      mimetype: citada.mimetype,
+      tipo,
+    };
+  }
+
+  return null;
+}
 
 export default {
   command: ["subir", "cdn"],
   category: "tools",
-  description: "Sube una foto a Duan CDN y devuelve el link",
+  description: "Sube un archivo a Duan CDN y devuelve el link",
   run: async (sock, msg, args, context) => {
     const { chatId, sender } = context;
 
-    const directa = msg.message?.imageMessage || msg.message?.videoMessage || msg.message?.audioMessage;
-    const info = msg.message?.extendedTextMessage?.contextInfo;
-    const citada = info?.quotedMessage?.imageMessage || info?.quotedMessage?.videoMessage || info?.quotedMessage?.audioMessage;
+    const encontrado = detectarMedia(msg);
 
-    let mensajeParaDescargar = null;
-    let mimetype = "image/jpeg";
-
-    if (directa) {
-      mensajeParaDescargar = msg;
-      mimetype = directa.mimetype || mimetype;
-    } else if (citada) {
-      mensajeParaDescargar = {
-        message: info.quotedMessage,
-        key: { remoteJid: chatId, id: info.stanzaId, participant: info.participant },
-      };
-      mimetype = citada.mimetype || mimetype;
-    }
-
-    if (!mensajeParaDescargar) {
+    if (!encontrado) {
       await sock.sendMessage(chatId, {
-        text: "Mandá una foto, video o audio con el texto *subir* como descripción, o citá un archivo ya enviado y escribí *subir*.",
+        text: "Mandá una foto, video o audio con el texto *subir* como descripción, o citá uno ya enviado y escribí *subir*.",
       }, { quoted: msg });
       return;
     }
 
+    const { mensajeParaDescargar, mimetype, tipo } = encontrado;
+    if (mensajeParaDescargar.key) mensajeParaDescargar.key.remoteJid = chatId;
+
     try {
-      let tipoMedia = "archivo";
-      if (mimetype.startsWith("video")) tipoMedia = "video";
-      else if (mimetype.startsWith("audio")) tipoMedia = "audio";
-      else if (mimetype.startsWith("image")) tipoMedia = "foto";
-      
-      await sock.sendMessage(chatId, { text: `Subiendo ${tipoMedia}...` }, { quoted: msg });
+      await sock.sendMessage(chatId, { text: "Subiendo..." }, { quoted: msg });
 
       const buffer = await downloadMediaMessage(mensajeParaDescargar, "buffer", {});
 
-      let ext = mimetype.split("/")[1];
-      if (!ext) {
-        if (mimetype.startsWith("video")) ext = "mp4";
-        else if (mimetype.startsWith("audio")) ext = "ogg";
-        else ext = "jpg";
-      }
-      
+      const ext = mimetype.split("/")[1]?.split(";")[0] || (tipo === "image" ? "jpg" : tipo === "video" ? "mp4" : "ogg");
       const blob = new Blob([buffer], { type: mimetype });
 
       const formData = new FormData();
-      formData.append("file", blob, `media.${ext}`);
+      formData.append("file", blob, `archivo.${ext}`);
       formData.append("uid", sender.split("@")[0]);
 
       const res = await fetch(CDN_URL, { method: "POST", body: formData });
