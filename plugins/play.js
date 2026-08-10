@@ -122,7 +122,6 @@ export default {
       }
 
       const titulo = info.title || primerVideo.title || query;
-      const duracion = formatearDuracion(info.duration);
       const precio = formatearPrecio(info.duration);
 
       // Tarjeta con miniatura grande (externalAdReply)
@@ -139,19 +138,17 @@ export default {
           chatId,
           {
             text:
-              `🎵 *${bold(titulo)}*\n` +
-              `⏱️ *Duración:* ${duracion}\n\n` +
-              `╾ׄ𖹭ִ╼ᮀ✿ִ╾ᜒ𖹭╼ִ✿╾᩿ׄ𖹭╼ִ✿╾ᮀ𖹭ִ╼ᜒ✿ִ╾ׄ𖹭᩿╼\n` +
-              `➮ *${bold("Enviando audio...")}*`,
+              `📥 *${bold("Procesando descarga, espera un momento...")}*\n` +
+              `🎵 *SlowedGenX - By Edward & Brayan RK*`,
             contextInfo: {
               externalAdReply: {
                 title: titulo,
                 body: precio,
                 thumbnail: thumbnailBuffer,
                 thumbnailUrl: info.thumbnail,
-                sourceUrl: primerVideo.url,
                 mediaType: 1,
                 renderLargerThumbnail: true,
+                showAdAttribution: false,
               },
             },
           },
