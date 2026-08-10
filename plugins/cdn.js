@@ -5,13 +5,13 @@ const CDN_URL = "https://duancdn.hidenfree.com/upload";
 export default {
   command: ["subir", "cdn"],
   category: "tools",
-  description: "Sube una foto a Duan CDN y devuelve el link",
+  description: "Sube una foto o video a Duan CDN y devuelve el link",
   run: async (sock, msg, args, context) => {
     const { chatId, sender } = context;
 
-    const directa = msg.message?.imageMessage;
+    const directa = msg.message?.imageMessage || msg.message?.videoMessage;
     const info = msg.message?.extendedTextMessage?.contextInfo;
-    const citada = info?.quotedMessage?.imageMessage;
+    const citada = info?.quotedMessage?.imageMessage || info?.quotedMessage?.videoMessage;
 
     let mensajeParaDescargar = null;
     let mimetype = "image/jpeg";
@@ -29,21 +29,22 @@ export default {
 
     if (!mensajeParaDescargar) {
       await sock.sendMessage(chatId, {
-        text: "Mandá una foto con el texto *subir* como descripción, o citá una foto ya enviada y escribí *subir*.",
+        text: "Mandá una foto o video con el texto *subir* como descripción, o citá una foto/video ya enviado y escribí *subir*.",
       }, { quoted: msg });
       return;
     }
 
     try {
-      await sock.sendMessage(chatId, { text: "Subiendo..." }, { quoted: msg });
+      const tipoMedia = mimetype.startsWith("video") ? "video" : "foto";
+      await sock.sendMessage(chatId, { text: `Subiendo ${tipoMedia}...` }, { quoted: msg });
 
       const buffer = await downloadMediaMessage(mensajeParaDescargar, "buffer", {});
 
-      const ext = mimetype.split("/")[1] || "jpg";
+      const ext = mimetype.split("/")[1] || (mimetype.startsWith("video") ? "mp4" : "jpg");
       const blob = new Blob([buffer], { type: mimetype });
 
       const formData = new FormData();
-      formData.append("file", blob, `foto.${ext}`);
+      formData.append("file", blob, `media.${ext}`);
       formData.append("uid", sender.split("@")[0]);
 
       const res = await fetch(CDN_URL, { method: "POST", body: formData });
@@ -51,7 +52,7 @@ export default {
 
       if (!data.status) {
         await sock.sendMessage(chatId, {
-          text: "Error subiendo la foto: " + (data.error || "fallo desconocido"),
+          text: "Error subiendo el archivo: " + (data.error || "fallo desconocido"),
         }, { quoted: msg });
         return;
       }
