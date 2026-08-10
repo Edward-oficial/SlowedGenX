@@ -1,6 +1,6 @@
 import { downloadMediaMessage } from "../media.js";
 
-const CDN_URL = "https://duancdn.onrender.com/upload";
+const CDN_URL = "https://duancdn.hidenfree.com/upload";
 
 export default {
   command: ["subir", "cdn"],
