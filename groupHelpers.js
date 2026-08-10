@@ -45,8 +45,8 @@ export function nombreUsuario(sock, jid) {
 }
 
 export function aplicarPlantilla(plantilla, vars) {
-  return plantilla.replace(/\{(\w+)\}/g, (_, clave) =>
-    Object.prototype.hasOwnProperty.call(vars, clave) ? vars[clave] : `{${clave}}`
+  return plantilla.replace(/\$?\{(\w+)\}/g, (coincidencia, clave) =>
+    Object.prototype.hasOwnProperty.call(vars, clave) ? vars[clave] : coincidencia
   );
 }
 
