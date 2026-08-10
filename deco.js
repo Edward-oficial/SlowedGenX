@@ -42,9 +42,7 @@ export const fsociety = {
     },
   },
 
-  // Caja de doble línea fija (46 cols), igual que buildTopPanel/buildFooter
-  // del menú FSOCIETY-V1: encabezado siempre del mismo ancho sin importar
-  // el largo del título, y todo el contenido cerrado dentro del bloque.
+
   box: (title, lines = []) => {
     const width = 46;
     const top = `╔${"═".repeat(width)}╗`;
