@@ -92,7 +92,7 @@ function sortedCategoryNames(categories) {
 
 function buildSignature(botName) {
   const heart = getIcon("heart");
-  return `${heart} ${boldText(botName)} — ${boldText(BOT_CREATOR)} ${heart}`;
+  return `${heart} ${boldText(botName)} ${heart}`;
 }
 
 function buildFullMenu(categories, totalCommands, botDisplayName, senderNum) {
