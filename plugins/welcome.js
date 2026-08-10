@@ -1,5 +1,5 @@
-import { esAdminDeGrupo } from "../../groupHelpers.js";
-import { actualizarConfigGrupo } from "../../groupSettings.js";
+import { esAdminDeGrupo } from "../groupHelpers.js";
+import { actualizarConfigGrupo } from "../groupSettings.js";
 
 export default {
   command: ["setwelcome"],
