@@ -1,5 +1,4 @@
-import ffmpeg from "fluent-ffmpeg";
-import { writeFileSync, readFileSync, unlinkSync } from "fs";
+import sharp from "sharp";
 import { tmpdir } from "os";
 import { join } from "path";
 
@@ -23,7 +22,6 @@ export default {
     try {
       await sock.sendMessage(chatId, { text: "Subiendo..." }, { quoted: msg });
 
-      // Descargar directo con fetch de la URL de WhatsApp
       const mediaUrl = imageMsg.url;
       
       const response = await fetch(mediaUrl, {
@@ -34,25 +32,10 @@ export default {
 
       const buffer = Buffer.from(await response.arrayBuffer());
 
-      const inputPath = join(tmpdir(), `input_${Date.now()}.jpg`);
-      const outputPath = join(tmpdir(), `output_${Date.now()}.jpg`);
-
-      writeFileSync(inputPath, buffer);
-
-      await new Promise((resolve, reject) => {
-        ffmpeg(inputPath)
-          .outputOptions([
-            "-vf", "scale=1280:-1",
-            "-q:v", "5",
-            "-preset", "fast",
-          ])
-          .output(outputPath)
-          .on("end", resolve)
-          .on("error", reject)
-          .run();
-      });
-
-      const procesado = readFileSync(outputPath);
+      const procesado = await sharp(buffer)
+        .resize(1280, null, { fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: 85 })
+        .toBuffer();
 
       const form = new FormData();
       const blob = new Blob([procesado], { type: "image/jpeg" });
@@ -62,9 +45,6 @@ export default {
         method: "POST",
         body: form,
       });
-
-      unlinkSync(inputPath);
-      unlinkSync(outputPath);
 
       const data = await res.json();
 
