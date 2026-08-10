@@ -1,4 +1,4 @@
-import { downloadContentFromMessage } from "baileysx";
+import { downloadContentFromMessage } from "baileysxz";
 
 export async function downloadMediaMessage(msg, type = "buffer", options = {}) {
   const content = msg.message?.imageMessage || msg.message?.videoMessage || msg.message?.audioMessage || msg.message?.documentMessage || msg.message?.stickerMessage;
