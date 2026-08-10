@@ -4,7 +4,7 @@ const CDN_URL = "https://duancdn.onrender.com/upload";
 
 export default {
   command: ["subir", "cdn"],
-  category: "Multimedia",
+  category: "tools",
   description: "Sube una foto a Duan CDN y devuelve el link",
   run: async (sock, msg, args, context) => {
     const { chatId, sender } = context;
