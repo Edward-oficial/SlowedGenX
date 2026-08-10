@@ -8,6 +8,7 @@ import { Boom } from "@hapi/boom";
 import pino from "pino";
 import chalk from "chalk";
 import fs from "fs";
+import { obtenerConfigGrupo } from "./groupSettings.js";
 
 async function pedirCodigoPairing(sock, numero, onPairingCode, etiqueta, intento = 1) {
   const MAX_INTENTOS = 4;
@@ -189,6 +190,65 @@ export async function crearBot({
 
   sock.ev.on("group-participants.update", async (update) => {
     const metadata = await actualizarCacheGrupo(update.id);
+
+    if (metadata) {
+      try {
+        const { id: chatId, participants, action } = update;
+        const configGrupo = obtenerConfigGrupo(chatId);
+
+        if (action === "add" && configGrupo.welcome) {
+          for (const participante of participants) {
+            let numero = participante.split("@")[0];
+            if (!participante.endsWith("@s.whatsapp.net")) {
+              const p = metadata.participants.find((x) => x.id === participante);
+              numero = (p?.phoneNumber || p?.jid || participante).split("@")[0];
+            }
+
+            const texto = "Hola, *${mention}* Bienvenida/o a {grupo}. Ya somos {cantidad}."
+              .replace(/\$?\{mention\}/g, `@${numero}`)
+              .replace(/\$?\{grupo\}/g, metadata.subject)
+              .replace(/\$?\{cantidad\}/g, metadata.participants.length);
+
+            let foto = null;
+            try {
+              foto = await sock.profilePictureUrl(participante, "image");
+            } catch (_) {
+              foto = null; // el usuario no tiene foto de perfil o es privada
+            }
+
+            if (foto) {
+              await sock.sendMessage(chatId, {
+                image: { url: foto },
+                caption: texto,
+                mentions: [participante],
+              });
+            } else {
+              await sock.sendMessage(chatId, { text: texto, mentions: [participante] });
+            }
+          }
+        }
+
+        if (action === "remove" && configGrupo.bye) {
+          for (const participante of participants) {
+            let numero = participante.split("@")[0];
+            if (!participante.endsWith("@s.whatsapp.net")) {
+              const p = metadata.participants.find((x) => x.id === participante);
+              numero = (p?.phoneNumber || p?.jid || participante).split("@")[0];
+            }
+
+            const texto = "${mention}* se fue de {grupo}. Ya somos {cantidad}."
+              .replace(/\$?\{mention\}/g, `@${numero}`)
+              .replace(/\$?\{grupo\}/g, metadata.subject)
+              .replace(/\$?\{cantidad\}/g, metadata.participants.length);
+
+            await sock.sendMessage(chatId, { text: texto, mentions: [participante] });
+          }
+        }
+      } catch (err) {
+        console.log(chalk.red(`[${etiqueta}] Error enviando bienvenida/despedida:`), err);
+      }
+    }
+
     if (onGroupParticipantsUpdate) {
       try {
         await onGroupParticipantsUpdate(sock, update, metadata);
