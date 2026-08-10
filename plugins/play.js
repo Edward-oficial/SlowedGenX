@@ -1,6 +1,5 @@
-import { config } from "../config.js";
-
-const { baseUrl, apiKey } = config.api;
+const BASE_URL = "https://dv-edward.onrender.com";
+const API_KEY = "edward";
 
 const MAPA_ESTILO = {
   a: "α", b: "b", c: "c", d: "d", e: "ᧉ", f: "𝖿", g: "g", h: "һ", i: "ꪱ",
@@ -57,7 +56,7 @@ export default {
                 `🍃⃨^᪲  ✿⵿ⳋ \`${estilizar("ejemplo")}\` ち ៸៸ ぃ 🍂ᩨ\n` +
                 `➮ ✰ *play* shape of you\n\n` +
                 `╾ׄ𖹭ִ╼ᮀ✿ִ╾ᜒ𖹭╼ִ✿╾᩿ׄ𖹭╼ִ✿╾ᮀ𖹭ִ╼ᜒ✿ִ╾ׄ𖹭᩿╼\n` +
-                `➮ *${config.creator} ×͜×*`
+                `➮ *SlowedGenX ×͜×*`
         },
         { quoted: msg }
       );
@@ -74,7 +73,7 @@ export default {
         { quoted: msg }
       );
 
-      const searchUrl = `${baseUrl}/api/search/youtube?apiKey=${apiKey}&query=${encodeURIComponent(
+      const searchUrl = `${BASE_URL}/api/search/youtube?apiKey=${API_KEY}&query=${encodeURIComponent(
         query
       )}`;
       const searchRes = await fetch(searchUrl);
@@ -96,9 +95,9 @@ export default {
         return;
       }
 
-      const downloadUrl = `${baseUrl}/api/download/ytaudio?url=${encodeURIComponent(
+      const downloadUrl = `${BASE_URL}/api/download/ytaudio?url=${encodeURIComponent(
         primerVideo.url
-      )}&apiKey=${apiKey}`;
+      )}&apiKey=${API_KEY}`;
       const downloadRes = await fetch(downloadUrl);
       const downloadData = await downloadRes.json();
 
@@ -119,7 +118,7 @@ export default {
       const titulo = info.title || primerVideo.title || query;
       const duracion = formatearDuracion(info.duration);
 
-      // Tarjeta con miniatura grande (externalAdReply), como la de tu captura
+      // Tarjeta con miniatura grande (externalAdReply)
       if (info.thumbnail) {
         await sock.sendMessage(
           chatId,
