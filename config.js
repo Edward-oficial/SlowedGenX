@@ -5,7 +5,7 @@ export const config = {
   sessionFolder: "./sessions/main",
   subBotsFolder: "./sessions/subbots",
   ownerNumber: "584223342535",
-  owners: ["TU_SENDER_EXACTO_AQUI"],
+  owners: ["77623648624677", "204148502954022],
   canal: null,
 
   welcome: {
