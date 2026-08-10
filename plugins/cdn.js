@@ -1,20 +1,35 @@
-import sharp from "sharp";
-import { tmpdir } from "os";
-import { join } from "path";
+import { downloadMediaMessage } from "../media.js";
+
+const CDN_URL = "https://duancdn.onrender.com/upload";
 
 export default {
-  command: ["subir", "cdn", "host"],
-  category: "tools",
-  description: "Sube una imagen al CDN",
+  command: ["subir", "cdn"],
+  category: "Multimedia",
+  description: "Sube una foto a Duan CDN y devuelve el link",
   run: async (sock, msg, args, context) => {
-    const { chatId } = context;
+    const { chatId, sender } = context;
 
-    const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-    const imageMsg = msg.message?.imageMessage || quoted?.imageMessage;
+    const directa = msg.message?.imageMessage;
+    const info = msg.message?.extendedTextMessage?.contextInfo;
+    const citada = info?.quotedMessage?.imageMessage;
 
-    if (!imageMsg) {
+    let mensajeParaDescargar = null;
+    let mimetype = "image/jpeg";
+
+    if (directa) {
+      mensajeParaDescargar = msg;
+      mimetype = directa.mimetype || mimetype;
+    } else if (citada) {
+      mensajeParaDescargar = {
+        message: info.quotedMessage,
+        key: { remoteJid: chatId, id: info.stanzaId, participant: info.participant },
+      };
+      mimetype = citada.mimetype || mimetype;
+    }
+
+    if (!mensajeParaDescargar) {
       await sock.sendMessage(chatId, {
-        text: "Respondé a una imagen o enviá una con el comando *subir*",
+        text: "Mandá una foto con el texto *subir* como descripción, o citá una foto ya enviada y escribí *subir*.",
       }, { quoted: msg });
       return;
     }
@@ -22,47 +37,31 @@ export default {
     try {
       await sock.sendMessage(chatId, { text: "Subiendo..." }, { quoted: msg });
 
-      const mediaUrl = imageMsg.url;
-      
-      const response = await fetch(mediaUrl, {
-        headers: { "User-Agent": "WhatsApp/2.0" },
-      });
+      const buffer = await downloadMediaMessage(mensajeParaDescargar, "buffer", {});
 
-      if (!response.ok) throw new Error("No se pudo descargar la imagen");
+      const ext = mimetype.split("/")[1] || "jpg";
+      const blob = new Blob([buffer], { type: mimetype });
 
-      const buffer = Buffer.from(await response.arrayBuffer());
+      const formData = new FormData();
+      formData.append("file", blob, `foto.${ext}`);
+      formData.append("uid", sender.split("@")[0]);
 
-      const procesado = await sharp(buffer)
-        .resize(1280, null, { fit: "inside", withoutEnlargement: true })
-        .jpeg({ quality: 85 })
-        .toBuffer();
-
-      const form = new FormData();
-      const blob = new Blob([procesado], { type: "image/jpeg" });
-      form.append("file", blob, "foto.jpg");
-
-      const res = await fetch("https://duancdn.onrender.com/upload", {
-        method: "POST",
-        body: form,
-      });
-
+      const res = await fetch(CDN_URL, { method: "POST", body: formData });
       const data = await res.json();
 
       if (!data.status) {
         await sock.sendMessage(chatId, {
-          text: "Error al subir: " + (data.error || "desconocido"),
+          text: "Error subiendo la foto: " + (data.error || "fallo desconocido"),
         }, { quoted: msg });
         return;
       }
 
       await sock.sendMessage(chatId, {
-        text: `Listo\n\n*Link:*\n${data.urlPropia}`,
+        text: `Listo, tu link:\n${data.urlPropia}`,
       }, { quoted: msg });
 
     } catch (err) {
-      await sock.sendMessage(chatId, {
-        text: "Error: " + err.message,
-      }, { quoted: msg });
+      await sock.sendMessage(chatId, { text: "Error: " + err.message }, { quoted: msg });
     }
   },
 };
