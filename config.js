@@ -4,7 +4,7 @@ export const config = {
   creator: "Duan & BrayanRK",
   sessionFolder: "./sessions/main",
   subBotsFolder: "./sessions/subbots",
-  ownerNumber: "50400000000",
+  ownerNumber: "584223342535",
   canal: null,
 
   welcome: {
