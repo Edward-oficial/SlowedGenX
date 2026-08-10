@@ -132,7 +132,7 @@ function getImageCandidates() {
   return [
     path.join(process.cwd(), "imagenes", "menu.mp4"),
     path.join(process.cwd(), "imagenes", "menu.png"),
-    path.join(process.cwd(), "imagenes", "menu.jpg"),
+    path.join(process.cwd(), "imagenes", "menu.jpeg"),
   ];
 }
 
