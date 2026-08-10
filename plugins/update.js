@@ -1,6 +1,16 @@
 import { execSync } from "child_process";
 import { config } from "../config.js";
 
+// Extrae solo los dígitos, sin importar si el sender viene como
+// "1234@s.whatsapp.net", "1234@lid" o el número pelado.
+const soloNumero = (valor) => String(valor || "").replace(/\D/g, "");
+
+const esOwner = (sender) => {
+  const numeroSender = soloNumero(sender);
+  if (!numeroSender) return false;
+  return (config.owners || []).some((o) => soloNumero(o) === numeroSender);
+};
+
 export default {
   command: ["update", "actualizar", "gitpull"],
   category: "owner",
@@ -8,7 +18,7 @@ export default {
   run: async (sock, msg, args, context) => {
     const { chatId, sender, recargarComandos } = context;
 
-    if (!config.owners?.includes(sender)) {
+    if (!esOwner(sender)) {
       await sock.sendMessage(chatId, {
         text: "No tenés permiso para usar este comando.",
       }, { quoted: msg });
