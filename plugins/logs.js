@@ -4,7 +4,7 @@ import config from "../../config.js";
 
 export default {
   command: ["logs", "log"],
-  category:sistema",
+  category:"owner",
   description: "Muestra los últimos logs del bot",
   run: async (sock, msg, args, context) => {
     const { chatId, sender } = context;
