@@ -1,10 +1,5 @@
 import { execSync } from "child_process";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import config from "../../config.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { config } from "../config.js";
 
 export default {
   command: ["update", "actualizar", "gitpull"],
@@ -13,7 +8,7 @@ export default {
   run: async (sock, msg, args, context) => {
     const { chatId, sender, recargarComandos } = context;
 
-    if (!config.owners.includes(sender)) {
+    if (!config.owners?.includes(sender)) {
       await sock.sendMessage(chatId, {
         text: "No tenés permiso para usar este comando.",
       }, { quoted: msg });
@@ -37,8 +32,10 @@ export default {
       const cambios = execSync(`git diff --name-only ${antes} ${despues}`)
         .toString().trim().split("\n").filter(Boolean);
 
+      let recargoOk = false;
       if (typeof recargarComandos === "function") {
         await recargarComandos();
+        recargoOk = true;
       }
 
       await sock.sendMessage(chatId, {
@@ -46,9 +43,10 @@ export default {
           `Actualizado\n` +
           `${antes.slice(0, 7)} → ${despues.slice(0, 7)}\n` +
           `${cambios.length} archivos\n` +
-          `Comandos recargados.`,
+          (recargoOk
+            ? "Comandos recargados."
+            : "⚠️ No se pudo recargar comandos en caliente, reiniciá el bot manualmente."),
       }, { quoted: msg });
-
     } catch (err) {
       await sock.sendMessage(chatId, {
         text: "Error:\n" + err.message,
