@@ -3,7 +3,7 @@ import { esAdminDeGrupo } from "../groupHelpers.js";
 
 export default {
   command: ["bienvenida", "welcome", "despedida", "bye"],
-  category: "Grupo",
+  category: "group",
   description: "Activa o desactiva los mensajes de bienvenida y despedida",
   run: async (sock, msg, args, context) => {
     const { chatId, sender, esGrupo, body } = context;
