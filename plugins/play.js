@@ -40,6 +40,12 @@ function formatearDuracion(segundos) {
   return `${min}:${seg}`;
 }
 
+function formatearPrecio(segundos) {
+  if (!segundos && segundos !== 0) return "$0.10";
+  const precio = Math.max(0.1, segundos * 0.0011);
+  return `$${precio.toFixed(2)}`;
+}
+
 export default {
   command: ["play"],
   category: "tools",
@@ -117,6 +123,7 @@ export default {
 
       const titulo = info.title || primerVideo.title || query;
       const duracion = formatearDuracion(info.duration);
+      const precio = formatearPrecio(info.duration);
 
       // Tarjeta con miniatura grande (externalAdReply)
       if (info.thumbnail) {
@@ -131,7 +138,7 @@ export default {
             contextInfo: {
               externalAdReply: {
                 title: titulo,
-                body: duracion,
+                body: precio,
                 thumbnailUrl: info.thumbnail,
                 sourceUrl: primerVideo.url,
                 mediaType: 1,
