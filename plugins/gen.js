@@ -71,7 +71,7 @@ async function generarYEnviar(sock, msg, chatId, botName, instruction) {
 
 export default {
   command: ["gen", "generar", "botgen"],
-  category: "General",
+  category: "tools",
   description: "Genera un bot nuevo con IA, paso a paso",
   run: async (sock, msg, args, context) => {
     const { chatId, esperarRespuesta } = context;
