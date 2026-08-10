@@ -6,7 +6,6 @@ import { config } from "./config.js";
 import { loadPlugins, agruparPorCategoria } from "./pluginLoader.js";
 import { crearBot } from "./core.js";
 import { reconectarSubBots, listarSubBots } from "./subbots.js";
-import { onGroupParticipantsUpdate } from "./welcome.js";
 
 process.on("uncaughtException", (err) => {
   console.log(chalk.red("[ERROR] Excepción no capturada:"), err);
@@ -109,7 +108,6 @@ async function iniciar() {
       ...context,
       allPlugins: plugins,
       onMessage,
-      onGroupParticipantsUpdate,
       esperarRespuesta: (handler, timeoutMs) => esperarRespuesta(chatId, sender, handler, timeoutMs),
     };
 
@@ -146,7 +144,6 @@ async function iniciar() {
     mostrarQR,
     numeroParaPairing,
     onMessage,
-    onGroupParticipantsUpdate,
     onPairingCode: (codigo) => {
       console.log(chalk.greenBright("\nCÓDIGO DE VINCULACIÓN:\n"));
       console.log(chalk.bold.cyan(`${codigo}\n`));
