@@ -3,7 +3,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   DisconnectReason,
   Browsers,
-} from "baileysxz";
+} from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import pino from "pino";
 import chalk from "chalk";
