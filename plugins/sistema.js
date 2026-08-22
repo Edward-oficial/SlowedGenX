@@ -14,7 +14,9 @@ export default {
       ['RAM', `${Math.round(memoria.rss / 1024 / 1024)} MB`],
       ['PID', String(process.pid)],
       ['Plataforma', process.platform],
-      ['Arquitectura', process.arch]
+      ['Arquitectura', process.arch],
+      ['Host', 'Xhost'], // Información del hosting
+      ['Web', 'https://xhost.hidenfree.com'] // Enlace al host
     ];
 
     await sock.sendTable(
@@ -24,8 +26,8 @@ export default {
       filas,
       msg,
       {
-        headerText: '🖥️ ATÚ BOT',
-        footer: 'Información del proceso'
+        headerText: '🖥️ Slowend',
+        footer: 'Información del proceso | Host: Xhost'
       }
     );
   }
